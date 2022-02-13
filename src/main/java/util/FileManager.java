@@ -56,13 +56,13 @@ public class FileManager {
         List<File> selectedFiles = fileChooser.showOpenMultipleDialog(GTrigger.primaryStage);
 
         if(selectedFiles == null) {
-            return new HashSet<>();
+            return new TreeSet<>();
         }
 
         return selectedFiles
                 .stream()
                 .flatMap(file -> getEntriesFromFile(file).stream())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     public static List<TriggerReactionEntry> getEntriesFromFile(File file) {

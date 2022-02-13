@@ -1,5 +1,6 @@
 package triggers;
 
+import reactions.Reaction;
 import util.ComparisonResult;
 
 import java.io.Serializable;
@@ -33,4 +34,12 @@ public abstract class Trigger<T> implements Serializable {
     }
 
     public abstract ComparisonResult compare(T value);
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Trigger)) return false;
+        Trigger<?> trigger = (Trigger<?>) o;
+        return this.value.equals(trigger.value)
+                && this.getType() == trigger.getType();
+    }
 }

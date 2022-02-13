@@ -26,7 +26,9 @@ import util.FileManager;
 import util.VariableUtil;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ExtensionInfo(
@@ -101,7 +103,6 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
 
     private<T extends PacketTrigger> void onPacket(HMessage hMessage, Class<T> triggerClass) {
         synchronized (GTrigger.entryLock) {
-            entryOverview.getItems().stream().map(TriggerReactionEntry::isActive).forEach(System.out::println);
             entryOverview.getItems()
                     .filtered(entry -> entry.isActive().get())
                     .filtered(entry -> triggerClass.isInstance(entry.getTrigger()))

@@ -12,12 +12,12 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TriggerReactionEntry implements Serializable {
+public class TriggerReactionEntry implements Serializable, Comparable<TriggerReactionEntry> {
     static final long serialVersionUID = 956165194645L;
 
     protected static Long IdCounter = 0L;
 
-    private final transient Long id;
+    private transient Long id;
     private transient AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean consumed;
     private final Trigger<?> trigger;
@@ -63,6 +63,9 @@ public class TriggerReactionEntry implements Serializable {
     }
 
     public Long getId() {
+        if (this.id == null) {
+            this.id = TriggerReactionEntry.IdCounter++;
+        }
         return this.id;
     }
 
@@ -124,5 +127,13 @@ public class TriggerReactionEntry implements Serializable {
         if(index != -1) {
             entryOverview.getItems().set(index, this);
         }
+    }
+
+    @Override
+    public int compareTo(TriggerReactionEntry entry) {
+        return this.trigger.equals(entry.trigger)
+                && this.reaction.equals(entry.reaction)
+                && this.delay == entry.delay
+                && this.description.equals(entry.description) ? 0 : 1;
     }
 }

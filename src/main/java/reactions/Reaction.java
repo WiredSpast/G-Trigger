@@ -1,6 +1,7 @@
 package reactions;
 
 import gearth.extensions.ExtensionBase;
+import overview.TriggerReactionEntry;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -41,5 +42,13 @@ public abstract class Reaction implements Serializable {
     @Override
     public String toString() {
         return getType().desc + " - " + getValue();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof Reaction)) return false;
+        Reaction reaction = (Reaction) o;
+        return this.value.equals(reaction.value)
+                && this.getType() == reaction.getType();
     }
 }
