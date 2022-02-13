@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <AnchorPane prefHeight="350.0" prefWidth="780.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="extension.GTrigger">
-  <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
+  <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragOver="#onFileOver" onDragDropped="#onFileDrop" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
     <columns>
     </columns>
   </TableView>

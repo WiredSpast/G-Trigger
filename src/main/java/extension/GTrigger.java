@@ -12,6 +12,9 @@ import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.stage.Stage;
 import overview.ConsumedCheckBoxTableCell;
 import reactions.Reaction;
@@ -20,16 +23,14 @@ import triggers.*;
 import overview.AtomicCheckBoxTableCell;
 import overview.EditEntryTableCell;
 import overview.TriggerReactionEntry;
-import util.ComparisonResult;
-import util.EditingMode;
-import util.FileManager;
-import util.VariableUtil;
+import util.*;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 @ExtensionInfo(
         Title = "G-Trigger",
@@ -128,17 +129,19 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
 
     @Override
     public void nativeKeyPressed(NativeKeyEvent event) {
-        if(triggerValueBox.isFocused()) {
+        if (triggerValueBox.isFocused()) {
             if(triggerTypeBox.getValue() == TriggerType.KEYPRESS) {
                 triggerValueBox.setText(NativeKeyEvent.getKeyText(event.getKeyCode()));
             }
         } else {
-            synchronized (GTrigger.entryLock) {
-                entryOverview.getItems()
-                        .filtered(entry -> entry.isActive().get())
-                        .filtered(entry -> entry.getTrigger() instanceof KeyTrigger)
-                        .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
-                        .forEach(entry -> entry.triggerReaction(this, null));
+            if (WindowWatcher.getFrontMostWindowName().toLowerCase().contains("habbo")) {
+                synchronized (GTrigger.entryLock) {
+                    entryOverview.getItems()
+                            .filtered(entry -> entry.isActive().get())
+                            .filtered(entry -> entry.getTrigger() instanceof KeyTrigger)
+                            .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
+                            .forEach(entry -> entry.triggerReaction(this, new HashMap<>()));
+                }
             }
         }
     }
@@ -334,5 +337,44 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                 errorAlert.showAndWait();
             }
         }
+    }
+
+    public void disableAllEntries() {
+        entryOverview.getItems().forEach(entry -> {
+            entry.setActive(false);
+            entry.reload(entryOverview);
+        });
+    }
+
+    public void enableAllEntries() {
+        entryOverview.getItems().forEach(entry -> {
+            entry.setActive(true);
+            entry.reload(entryOverview);
+        });
+    }
+
+    public void onFileOver(DragEvent dragEvent) {
+        if (dragEvent.getDragboard().hasFiles()) {
+            if (dragEvent.getDragboard().getFiles().stream().allMatch(f -> f.getName().endsWith(".gTrig"))) {
+                dragEvent.acceptTransferModes(TransferMode.COPY);
+            }
+        }
+        dragEvent.consume();
+    }
+
+    public void onFileDrop(DragEvent dragEvent) {
+        Dragboard db = dragEvent.getDragboard();
+        boolean success = false;
+        if (db.hasFiles()) {
+            entryOverview.getItems()
+                    .addAll(db.getFiles()
+                            .stream()
+                            .flatMap(file -> FileManager.getEntriesFromFile(file).stream())
+                            .collect(Collectors.toCollection(TreeSet::new))
+                    );
+            success = true;
+        }
+
+        dragEvent.setDropCompleted(success);
     }
 }

@@ -24,7 +24,7 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
     private final Reaction reaction;
     private final String description;
     private final int delay;
-    private transient final Timer timer = new Timer();
+    private transient Timer timer = new Timer();
 
 
     private transient TableRow<TriggerReactionEntry> row;
@@ -86,6 +86,10 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
     }
 
     public void triggerReaction(ExtensionBase ext, HashMap<String, String> variables) {
+        if (this.timer == null) {
+            this.timer = new Timer();
+        }
+
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -134,6 +138,6 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
         return this.trigger.equals(entry.trigger)
                 && this.reaction.equals(entry.reaction)
                 && this.delay == entry.delay
-                && this.description.equals(entry.description) ? 0 : 1;
+                && this.description.equals(entry.description) ? 0 : this.description.compareTo(entry.description);
     }
 }
