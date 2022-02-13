@@ -1,35 +1,33 @@
 package overview;
 
-import extension.GTrigger;
 import gearth.extensions.ExtensionBase;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import org.json.JSONObject;
 import reactions.Reaction;
-import reactions.ReactionType;
 import triggers.Trigger;
-import triggers.TriggerType;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TriggerReactionEntry {
+public class TriggerReactionEntry implements Serializable {
+    static final long serialVersionUID = 956165194645L;
+
     protected static Long IdCounter = 0L;
 
-    private Long id;
-    private AtomicBoolean active;
-    private AtomicBoolean consumed;
-    private Trigger<?> trigger;
-    private Reaction reaction;
-    private String description;
-    private int delay;
-    private final Timer timer = new Timer();
+    private final transient Long id;
+    private transient AtomicBoolean active = new AtomicBoolean(false);
+    private final AtomicBoolean consumed;
+    private final Trigger<?> trigger;
+    private final Reaction reaction;
+    private final String description;
+    private final int delay;
+    private transient final Timer timer = new Timer();
 
-    private boolean valid = true;
 
-    private TableRow<TriggerReactionEntry> row;
+    private transient TableRow<TriggerReactionEntry> row;
 
     public TriggerReactionEntry(Trigger<?> trigger, Reaction reaction, String description, int delay) {
         this.id = TriggerReactionEntry.IdCounter++;
@@ -37,24 +35,15 @@ public class TriggerReactionEntry {
         this.reaction = reaction;
         this.description = description;
         this.delay = delay;
-        this.active = new AtomicBoolean(true);
+        this.active.set(true);
         this.consumed = new AtomicBoolean(false);
     }
 
-    public TriggerReactionEntry(JSONObject jsonObject) {
-        try {
-            this.active = new AtomicBoolean(jsonObject.getBoolean("active"));
-            this.consumed = new AtomicBoolean(jsonObject.optBoolean("consumed", false));
-            this.id = TriggerReactionEntry.IdCounter++;
-            this.description = jsonObject.getString("description");
-            this.delay = jsonObject.getInt("delay");
-            JSONObject triggerJson = jsonObject.getJSONObject("trigger");
-            this.trigger = TriggerType.valueOf(triggerJson.getString("type")).construct(triggerJson.getString("value"));
-            JSONObject reactionJson = jsonObject.getJSONObject("reaction");
-            this.reaction = ReactionType.valueOf(reactionJson.getString("type")).construct(reactionJson.getString("value"));
-        } catch(Exception ignored) {
-            this.valid = false;
-        }
+    public TriggerReactionEntry(Trigger<?> trigger, Reaction reaction, String description, int delay, boolean active, boolean consumed) {
+        this(trigger, reaction, description, delay);
+
+        this.active.set(active);
+        this.consumed.set(consumed);
     }
 
     public void setRow(TableRow<TriggerReactionEntry> row) {
@@ -78,6 +67,10 @@ public class TriggerReactionEntry {
     }
 
     public AtomicBoolean isActive() {
+        if (this.active == null) {
+            this.active = new AtomicBoolean(false);
+        }
+
         return this.active;
     }
 
@@ -112,20 +105,6 @@ public class TriggerReactionEntry {
 
     public int getDelay() {
         return this.delay;
-    }
-
-    public JSONObject getAsJSONObject() {
-        return new JSONObject()
-                .put("trigger", trigger.getAsJSONObject())
-                .put("reaction", reaction.getAsJSONObject())
-                .put("description", description)
-                .put("delay", delay)
-                .put("active", active.get())
-                .put("consumed", consumed.get());
-    }
-
-    public boolean isValid() {
-        return this.valid;
     }
 
     public void setActive(boolean val) {

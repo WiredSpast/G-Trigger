@@ -3,31 +3,27 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="350.0" prefWidth="780.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="extension.GTrigger">
-  <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" pickOnBounds="false" prefHeight="220.0"
-             prefWidth="760.0">
+<AnchorPane prefHeight="350.0" prefWidth="780.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="extension.GTrigger">
+  <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
     <columns>
     </columns>
   </TableView>
-  <ComboBox fx:id="triggerTypeBox" layoutX="81.0" layoutY="275.0" prefHeight="25.0" prefWidth="140.0"/>
-  <TextField fx:id="descriptionBox" layoutX="81.0" layoutY="239.0" prefHeight="25.0" prefWidth="550.0"/>
-  <TextField fx:id="triggerValueBox" layoutX="226.0" layoutY="275.0" prefHeight="25.0" prefWidth="405.0"/>
-  <Label layoutX="14.0" layoutY="243.0" text="Description:"/>
-  <Label layoutX="14.0" layoutY="279.0" text="Trigger:"/>
-  <ComboBox fx:id="reactionTypeBox" layoutX="81.0" layoutY="311.0" prefHeight="25.0" prefWidth="140.0"/>
-  <TextField fx:id="reactionValueBox" layoutX="226.0" layoutY="311.0" prefHeight="25.0" prefWidth="405.0"/>
-  <Label layoutX="14.0" layoutY="315.0" text="Reaction:"/>
-  <Label layoutX="640.0" layoutY="243.0" text="Delay:"/>
+  <ComboBox fx:id="triggerTypeBox" layoutX="81.0" layoutY="275.0" prefHeight="25.0" prefWidth="140.0" />
+  <TextField fx:id="descriptionBox" layoutX="81.0" layoutY="239.0" prefHeight="25.0" prefWidth="550.0" />
+  <TextField fx:id="triggerValueBox" layoutX="226.0" layoutY="275.0" prefHeight="25.0" prefWidth="405.0" />
+  <Label layoutX="14.0" layoutY="243.0" text="Description:" />
+  <Label layoutX="14.0" layoutY="279.0" text="Trigger:" />
+  <ComboBox fx:id="reactionTypeBox" layoutX="81.0" layoutY="311.0" prefHeight="25.0" prefWidth="140.0" />
+  <TextField fx:id="reactionValueBox" layoutX="226.0" layoutY="311.0" prefHeight="25.0" prefWidth="405.0" />
+  <Label layoutX="14.0" layoutY="315.0" text="Reaction:" />
+  <Label layoutX="640.0" layoutY="243.0" text="Delay:" />
   <Spinner fx:id="delaySpinner" editable="true" layoutX="687.0" layoutY="239.0" prefHeight="25.0" prefWidth="83.0">
     <valueFactory>
-      <SpinnerValueFactory.IntegerSpinnerValueFactory amountToStepBy="1" initialValue="0" max="9999" min="0"/>
+      <SpinnerValueFactory.IntegerSpinnerValueFactory amountToStepBy="1" initialValue="0" max="9999" min="0" />
     </valueFactory>
   </Spinner>
-  <Button layoutX="675.0" layoutY="311.0" mnemonicParsing="false" onAction="#clearAll" prefHeight="25.0"
-          prefWidth="95.0" text="Clear all"/>
-  <Button fx:id="addButton" disable="true" layoutX="675.0" layoutY="275.0" mnemonicParsing="false"
-          onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add"/>
-  <Button layoutX="640.0" layoutY="275.0" mnemonicParsing="false" prefWidth="25.0" text="S"/>
-  <Button layoutX="640.0" layoutY="311.0" mnemonicParsing="false" prefWidth="25.0" text="L"/>
+  <Button layoutX="675.0" layoutY="311.0" mnemonicParsing="false" onAction="#clearAll" prefHeight="25.0" prefWidth="95.0" text="Clear all" />
+  <Button fx:id="addButton" disable="true" layoutX="675.0" layoutY="275.0" mnemonicParsing="false" onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add" />
+  <Button fx:id="saveButton" disable="true" layoutX="640.0" layoutY="275.0" mnemonicParsing="false" onAction="#saveEntries" prefWidth="25.0" text="S" />
+  <Button fx:id="loadButton" layoutX="640.0" layoutY="311.0" mnemonicParsing="false" onAction="#loadEntriesFromFiles" prefWidth="25.0" text="L" />
 </AnchorPane>

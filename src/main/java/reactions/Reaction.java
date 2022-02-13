@@ -1,12 +1,14 @@
 package reactions;
 
 import gearth.extensions.ExtensionBase;
-import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class Reaction {
+public abstract class Reaction implements Serializable {
+    static final long serialVersionUID = 956165194645L;
+
     private final String value;
 
     public Reaction(String value) {
@@ -39,11 +41,5 @@ public abstract class Reaction {
     @Override
     public String toString() {
         return getType().desc + " - " + getValue();
-    }
-
-    public JSONObject getAsJSONObject() {
-        return new JSONObject()
-                .put("type", getType())
-                .put("value", getValue());
     }
 }

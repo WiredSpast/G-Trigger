@@ -25,6 +25,8 @@ public class GTriggerLauncher extends ExtensionFormCreator {
         stage.setResizable(false);
         stage.sizeToScene();
 
+        GTrigger.primaryStage = stage;
+
         return loader.getController();
     }
 

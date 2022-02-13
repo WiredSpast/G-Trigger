@@ -12,7 +12,7 @@ import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import org.json.JSONObject;
+import javafx.stage.Stage;
 import overview.ConsumedCheckBoxTableCell;
 import reactions.Reaction;
 import reactions.ReactionType;
@@ -22,11 +22,11 @@ import overview.EditEntryTableCell;
 import overview.TriggerReactionEntry;
 import util.ComparisonResult;
 import util.EditingMode;
+import util.FileManager;
 import util.VariableUtil;
-import utils.Cacher;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @ExtensionInfo(
@@ -36,12 +36,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
+    public static Stage primaryStage;
+
     public TableView<TriggerReactionEntry> entryOverview;
     public ComboBox<TriggerType> triggerTypeBox;
     public ComboBox<ReactionType> reactionTypeBox;
     public Spinner<Integer> delaySpinner;
     public TextField descriptionBox, triggerValueBox, reactionValueBox;
-    public Button addButton;
+    public Button addButton, saveButton, loadButton;
 
     public EditingMode editingMode = EditingMode.Add;
     public final static Object entryLock = new Object();
@@ -58,7 +60,6 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         setupKeyListener();
         setupGUI();
         setupColumns();
-        loadInCache();
     }
 
     private void onChatOut(HMessage hMessage) {
@@ -72,22 +73,21 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
 
     private<T extends CommandSaidTrigger> void onChat(HMessage hMessage, String chatMsg, Class<T> triggerClass) {
         synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> commandSaidEntries = entryOverview
-                    .getItems()
-                    .filtered(entry -> entry.isActive().get()
-                            && triggerClass.isInstance(entry.getTrigger()));
+            entryOverview.getItems()
+                    .filtered(entry -> entry.isActive().get())
+                    .filtered(entry -> triggerClass.isInstance(entry.getTrigger()))
+                    .forEach(entry -> {
+                        CommandSaidTrigger trigger = entry.getTrigger();
+                        ComparisonResult res = trigger.compare(chatMsg);
 
-            for (TriggerReactionEntry entry : commandSaidEntries) {
-                CommandSaidTrigger trigger = entry.getTrigger();
-                ComparisonResult res = trigger.compare(chatMsg);
-                if (res.isValid()) {
-                    entry.triggerReaction(this, res.getVariables());
+                        if (res.isValid()) {
+                            entry.triggerReaction(this, res.getVariables());
 
-                    if (entry.consumesTrigger()) {
-                        hMessage.setBlocked(true);
-                    }
-                }
-            }
+                            if (entry.consumesTrigger()) {
+                                hMessage.setBlocked(true);
+                            }
+                        }
+                    });
         }
     }
 
@@ -101,25 +101,27 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
 
     private<T extends PacketTrigger> void onPacket(HMessage hMessage, Class<T> triggerClass) {
         synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> packetEntries = entryOverview
-                    .getItems()
-                    .filtered(entry -> entry.isActive().get()
-                            && triggerClass.isInstance(entry.getTrigger()));
+            entryOverview.getItems().stream().map(TriggerReactionEntry::isActive).forEach(System.out::println);
+            entryOverview.getItems()
+                    .filtered(entry -> entry.isActive().get())
+                    .filtered(entry -> triggerClass.isInstance(entry.getTrigger()))
+                    .filtered(entry -> {
+                        PacketTrigger trigger = entry.getTrigger();
+                        return trigger.getCompletedSimplifiedPacket(getPacketInfoManager())
+                                .headerId() == hMessage.getPacket().headerId();
+                    })
+                    .forEach(entry -> {
+                        PacketTrigger trigger = entry.getTrigger();
+                        ComparisonResult res = trigger.compare(hMessage.getPacket());
 
-            for (TriggerReactionEntry entry : packetEntries) {
-                PacketTrigger trigger = entry.getTrigger();
-                if (trigger.getCompletedSimplifiedPacket(getPacketInfoManager())
-                        .headerId() == hMessage.getPacket().headerId()) {
-                    ComparisonResult res = trigger.compare(hMessage.getPacket());
-                    if(res.isValid()) {
-                        entry.triggerReaction(this, res.getVariables());
+                        if (res.isValid()) {
+                            entry.triggerReaction(this, res.getVariables());
 
-                        if (entry.consumesTrigger()) {
-                            hMessage.setBlocked(true);
+                            if (entry.consumesTrigger()) {
+                                hMessage.setBlocked(true);
+                            }
                         }
-                    }
-                }
-            }
+                    });
         }
     }
 
@@ -131,17 +133,11 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
             }
         } else {
             synchronized (GTrigger.entryLock) {
-                List<TriggerReactionEntry> keyPressedEntries = entryOverview
-                        .getItems()
-                        .filtered(entry -> entry.isActive().get()
-                                && entry.getTrigger() instanceof KeyTrigger);
-
-                for (TriggerReactionEntry entry : keyPressedEntries) {
-                    KeyTrigger trigger = entry.getTrigger();
-                    if (trigger.compare(event).isValid()) {
-                        entry.triggerReaction(this, null);
-                    }
-                }
+                entryOverview.getItems()
+                        .filtered(entry -> entry.isActive().get())
+                        .filtered(entry -> entry.getTrigger() instanceof KeyTrigger)
+                        .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
+                        .forEach(entry -> entry.triggerReaction(this, null));
             }
         }
     }
@@ -210,7 +206,6 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     private void setupChangeListener() {
         entryOverview.getItems().addListener((ListChangeListener<TriggerReactionEntry>) c -> {
             synchronized (GTrigger.entryLock) {
-                Cacher.updateCache(new JSONObject().put("entries", entryOverview.getItems().stream().map(TriggerReactionEntry::getAsJSONObject).toArray()).toString(2), "entries.json");
                 entryOverview.getItems().forEach(TriggerReactionEntry::deselect);
 
                 if(entryOverview.getItems().stream().noneMatch(item -> item.getId() == EditingMode.editingId)) {
@@ -218,6 +213,8 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                 } else {
                     entryOverview.getItems().stream().filter(item -> item.getId() == EditingMode.editingId).forEach(this::setEditMode);
                 }
+
+                saveButton.setDisable(entryOverview.getItems().isEmpty());
             }
         });
     }
@@ -225,16 +222,18 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     public void editOrAddEntry(ActionEvent ignoredEvent) {
         Trigger<?> trigger = triggerTypeBox.getValue().construct(triggerValueBox.getText());
         Reaction reaction = reactionTypeBox.getValue().construct(reactionValueBox.getText());
-        TriggerReactionEntry newEntry = new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue());
         switch(editingMode) {
             case Add:
-                addEntry(newEntry);
+                addEntry(new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue()));
                 break;
             case Edit:
                 entryOverview.getItems().stream().filter(entry -> entry.getId() == EditingMode.editingId).forEach(entry -> {
                     EditingMode.editingId = -1;
                     entry.deselect();
-                    entryOverview.getItems().set(entryOverview.getItems().indexOf(entry), newEntry);
+                    entryOverview.getItems().set(
+                                    entryOverview.getItems().indexOf(entry),
+                                    new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue(), entry.isActive().get(), entry.isConsumed().get())
+                    );
                 });
                 break;
         }
@@ -299,22 +298,6 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         entryOverview.getColumns().add(editColumn);
     }
 
-    private void loadInCache() {
-        if (Cacher.cacheFileExists("entries.json")) {
-            try {
-                JSONObject cache = Cacher.getCacheContents("entries.json");
-                cache.getJSONArray("entries")
-                        .toList()
-                        .stream()
-                        .map(o -> (HashMap<String, Object>) o)
-                        .map(JSONObject::new)
-                        .map(TriggerReactionEntry::new)
-                        .filter(TriggerReactionEntry::isValid)
-                        .forEach(this::addEntry);
-            } catch (Exception ignored){}
-        }
-    }
-
     private void addEntry(TriggerReactionEntry entry) {
         synchronized (GTrigger.entryLock) {
             entryOverview.getItems().add(entry);
@@ -330,5 +313,25 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         column.impl_setReorderable(false);
 
         return column;
+    }
+
+    public void saveEntries(ActionEvent ignoredEvent) {
+        synchronized (GTrigger.entryLock) {
+            FileManager.saveEntriesToFile(new ArrayList<>(entryOverview.getItems()));
+        }
+    }
+
+    public void loadEntriesFromFiles(ActionEvent ignoredEvent) {
+        synchronized (GTrigger.entryLock) {
+            Set<TriggerReactionEntry> entries = FileManager.loadEntriesFromFiles();
+            if (!entries.isEmpty()) {
+                entryOverview.getItems().clear();
+                entryOverview.getItems().addAll(entries);
+            } else {
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setHeaderText("No valid entries found on load from file(s)");
+                errorAlert.showAndWait();
+            }
+        }
     }
 }

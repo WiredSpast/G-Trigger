@@ -1,9 +1,12 @@
 package triggers;
 
-import org.json.JSONObject;
 import util.ComparisonResult;
 
-public abstract class Trigger<T> {
+import java.io.Serializable;
+
+public abstract class Trigger<T> implements Serializable {
+    static final long serialVersionUID = 956165194645L;
+
     private String value;
 
     public Trigger(String value) {
@@ -23,12 +26,6 @@ public abstract class Trigger<T> {
     @Override
     public String toString() {
         return getType().desc + " - " + getValue();
-    }
-
-    public JSONObject getAsJSONObject() {
-        return new JSONObject()
-                .put("type", getType())
-                .put("value", getValue());
     }
 
     public static boolean testValue(String value) {
