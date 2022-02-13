@@ -1,6 +1,6 @@
 package triggers;
 
-public class YouSayCommandTrigger extends Trigger {
+public class YouSayCommandTrigger extends CommandSaidTrigger {
     public YouSayCommandTrigger(String value) {
         super(value);
     }

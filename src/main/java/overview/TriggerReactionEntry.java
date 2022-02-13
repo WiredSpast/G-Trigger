@@ -1,13 +1,16 @@
 package overview;
 
+import extension.GTrigger;
 import gearth.extensions.ExtensionBase;
 import javafx.scene.control.TableRow;
+import javafx.scene.control.TableView;
 import org.json.JSONObject;
 import reactions.Reaction;
 import reactions.ReactionType;
 import triggers.Trigger;
 import triggers.TriggerType;
 
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -17,7 +20,8 @@ public class TriggerReactionEntry {
 
     private Long id;
     private AtomicBoolean active;
-    private Trigger trigger;
+    private AtomicBoolean consumed;
+    private Trigger<?> trigger;
     private Reaction reaction;
     private String description;
     private int delay;
@@ -27,18 +31,20 @@ public class TriggerReactionEntry {
 
     private TableRow<TriggerReactionEntry> row;
 
-    public TriggerReactionEntry(Trigger trigger, Reaction reaction, String description, int delay) {
+    public TriggerReactionEntry(Trigger<?> trigger, Reaction reaction, String description, int delay) {
         this.id = TriggerReactionEntry.IdCounter++;
         this.trigger = trigger;
         this.reaction = reaction;
         this.description = description;
         this.delay = delay;
         this.active = new AtomicBoolean(true);
+        this.consumed = new AtomicBoolean(false);
     }
 
     public TriggerReactionEntry(JSONObject jsonObject) {
         try {
             this.active = new AtomicBoolean(jsonObject.getBoolean("active"));
+            this.consumed = new AtomicBoolean(jsonObject.optBoolean("consumed", false));
             this.id = TriggerReactionEntry.IdCounter++;
             this.description = jsonObject.getString("description");
             this.delay = jsonObject.getInt("delay");
@@ -75,19 +81,19 @@ public class TriggerReactionEntry {
         return this.active;
     }
 
-    public Trigger getTrigger() {
-        return this.trigger;
+    public<T extends Trigger<?>> T getTrigger() {
+        return (T) this.trigger;
     }
 
-    public Reaction getReaction() {
-        return this.reaction;
+    public<R extends Reaction> R getReaction() {
+        return (R) this.reaction;
     }
 
-    public void triggerReaction(ExtensionBase ext) {
+    public void triggerReaction(ExtensionBase ext, HashMap<String, String> variables) {
         this.timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                getReaction().doReaction(ext);
+                getReaction().doReaction(ext, variables);
             }
         }, this.delay);
     }
@@ -114,10 +120,30 @@ public class TriggerReactionEntry {
                 .put("reaction", reaction.getAsJSONObject())
                 .put("description", description)
                 .put("delay", delay)
-                .put("active", active.get());
+                .put("active", active.get())
+                .put("consumed", consumed.get());
     }
 
     public boolean isValid() {
         return this.valid;
+    }
+
+    public void setActive(boolean val) {
+        this.active = new AtomicBoolean(val);
+    }
+
+    public AtomicBoolean isConsumed() {
+        return this.consumed;
+    }
+
+    public boolean consumesTrigger() {
+        return this.consumed.get();
+    }
+
+    public void reload(TableView<TriggerReactionEntry> entryOverview) {
+        int index = entryOverview.getItems().indexOf(this);
+        if(index != -1) {
+            entryOverview.getItems().set(index, this);
+        }
     }
 }

@@ -1,8 +1,12 @@
 package triggers;
 
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import util.ComparisonResult;
 import util.ValidNativeKeys;
 
-public class KeyTrigger extends Trigger {
+import java.util.HashMap;
+
+public class KeyTrigger extends Trigger<NativeKeyEvent> {
 
     public KeyTrigger(String key) {
         super(key);
@@ -15,5 +19,14 @@ public class KeyTrigger extends Trigger {
 
     public static boolean testValue(String value) {
         return ValidNativeKeys.isNativeKey(value);
+    }
+
+    @Override
+    public ComparisonResult compare(NativeKeyEvent value) {
+        if (NativeKeyEvent.getKeyText(value.getKeyCode()).equals(this.getValue())) {
+            return new ComparisonResult(new HashMap<>());
+        } else {
+            return new ComparisonResult("Not a match");
+        }
     }
 }

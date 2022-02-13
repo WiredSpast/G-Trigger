@@ -10,37 +10,29 @@ public enum TriggerType {
     ANYONESAYSCOMMAND("Anyone says cmd", AnyoneSaysCommandTrigger.class);
 
     public final String desc;
-    private final Class triggerClass;
+    private final Class<? extends Trigger<?>> triggerClass;
 
-    <T extends Trigger> TriggerType(String desc, Class<T> triggerClass) {
+    <T extends Trigger<?>> TriggerType(String desc, Class<T> triggerClass) {
         this.desc = desc;
         this.triggerClass = triggerClass;
     }
 
-    public<T extends Trigger> T construct(String value) {
+    public<T extends Trigger<?>> T construct(String value) {
         try {
             return (T) triggerClass.getConstructor(String.class).newInstance(value);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+            throw new Error("Couldn't find constructor for TriggerType." + this);
         }
-
-        throw new Error("Couldn't find constructor for TriggerType." + this);
     }
 
     public boolean testValue(String value) {
-        switch (this) {
-            case PACKETTOSERVER:
-                return PacketToServerTrigger.testValue(value);
-            case PACKETTOCLIENT:
-                return PacketToClientTrigger.testValue(value);
-            case KEYPRESS:
-                return KeyTrigger.testValue(value);
-            case ANYONESAYSCOMMAND:
-            case YOUSAYCOMMAND:
-                return CommandSaidTrigger.testValue(value);
+        try {
+            return (boolean) triggerClass
+                    .getMethod("testValue", String.class)
+                    .invoke(null, value);
+        } catch (Exception e) {
+            throw new Error("Couldn't find testValue method for TriggerType." + this);
         }
-
-        return false;
     }
 
     @Override

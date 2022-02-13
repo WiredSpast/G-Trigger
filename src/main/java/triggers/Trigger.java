@@ -1,8 +1,9 @@
 package triggers;
 
 import org.json.JSONObject;
+import util.ComparisonResult;
 
-public abstract class Trigger {
+public abstract class Trigger<T> {
     private String value;
 
     public Trigger(String value) {
@@ -33,4 +34,6 @@ public abstract class Trigger {
     public static boolean testValue(String value) {
         return false;
     }
+
+    public abstract ComparisonResult compare(T value);
 }

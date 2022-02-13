@@ -13,13 +13,16 @@ import javafx.event.ActionEvent;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import org.json.JSONObject;
+import overview.ConsumedCheckBoxTableCell;
 import reactions.Reaction;
 import reactions.ReactionType;
 import triggers.*;
 import overview.AtomicCheckBoxTableCell;
 import overview.EditEntryTableCell;
 import overview.TriggerReactionEntry;
+import util.ComparisonResult;
 import util.EditingMode;
+import util.VariableUtil;
 import utils.Cacher;
 
 import java.util.HashMap;
@@ -59,65 +62,62 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     }
 
     private void onChatOut(HMessage hMessage) {
-        synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> youSayCommandEntries = entryOverview
-                    .getItems()
-                    .filtered(entry -> entry.isActive().get()
-                            && entry.getTrigger() instanceof YouSayCommandTrigger);
-
-            for (TriggerReactionEntry entry : youSayCommandEntries) {
-                if (hMessage.getPacket().readString().equals(entry.getTrigger().getValue())) {
-                    entry.triggerReaction(this);
-                }
-            }
-        }
+        onChat(hMessage, hMessage.getPacket().readString(), YouSayCommandTrigger.class);
     }
 
     private void onChatIn(HMessage hMessage) {
         hMessage.getPacket().readInteger();
+        onChat(hMessage, hMessage.getPacket().readString(), AnyoneSaysCommandTrigger.class);
+    }
+
+    private<T extends CommandSaidTrigger> void onChat(HMessage hMessage, String chatMsg, Class<T> triggerClass) {
         synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> someoneSaysCommandEntries = entryOverview
+            List<TriggerReactionEntry> commandSaidEntries = entryOverview
                     .getItems()
                     .filtered(entry -> entry.isActive().get()
-                            && entry.getTrigger() instanceof AnyoneSaysCommandTrigger);
+                            && triggerClass.isInstance(entry.getTrigger()));
 
-            for (TriggerReactionEntry entry : someoneSaysCommandEntries) {
-                if (hMessage.getPacket().readString().equals(entry.getTrigger().getValue())) {
-                    entry.triggerReaction(this);
+            for (TriggerReactionEntry entry : commandSaidEntries) {
+                CommandSaidTrigger trigger = entry.getTrigger();
+                ComparisonResult res = trigger.compare(chatMsg);
+                if (res.isValid()) {
+                    entry.triggerReaction(this, res.getVariables());
+
+                    if (entry.consumesTrigger()) {
+                        hMessage.setBlocked(true);
+                    }
                 }
             }
         }
     }
 
     private void onPacketToClient(HMessage hMessage) {
-        synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> packetToClientEntries = entryOverview
-                    .getItems()
-                    .filtered(entry -> entry.isActive().get()
-                            && entry.getTrigger() instanceof PacketToClientTrigger);
-
-            for (TriggerReactionEntry entry : packetToClientEntries) {
-                if (((PacketTrigger) entry.getTrigger())
-                        .getCompletedPacket(getPacketInfoManager())
-                        .equals(hMessage.getPacket())) {
-                    entry.triggerReaction(this);
-                }
-            }
-        }
+        onPacket(hMessage, PacketToClientTrigger.class);
     }
 
     private void onPacketToServer(HMessage hMessage) {
+        onPacket(hMessage, PacketToServerTrigger.class);
+    }
+
+    private<T extends PacketTrigger> void onPacket(HMessage hMessage, Class<T> triggerClass) {
         synchronized (GTrigger.entryLock) {
-            List<TriggerReactionEntry> packetToServerEntries = entryOverview
+            List<TriggerReactionEntry> packetEntries = entryOverview
                     .getItems()
                     .filtered(entry -> entry.isActive().get()
-                            && entry.getTrigger() instanceof PacketToServerTrigger);
+                            && triggerClass.isInstance(entry.getTrigger()));
 
-            for (TriggerReactionEntry entry : packetToServerEntries) {
-                if (((PacketTrigger) entry.getTrigger())
-                        .getCompletedPacket(getPacketInfoManager())
-                        .equals(hMessage.getPacket())) {
-                    entry.triggerReaction(this);
+            for (TriggerReactionEntry entry : packetEntries) {
+                PacketTrigger trigger = entry.getTrigger();
+                if (trigger.getCompletedSimplifiedPacket(getPacketInfoManager())
+                        .headerId() == hMessage.getPacket().headerId()) {
+                    ComparisonResult res = trigger.compare(hMessage.getPacket());
+                    if(res.isValid()) {
+                        entry.triggerReaction(this, res.getVariables());
+
+                        if (entry.consumesTrigger()) {
+                            hMessage.setBlocked(true);
+                        }
+                    }
                 }
             }
         }
@@ -137,15 +137,16 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                                 && entry.getTrigger() instanceof KeyTrigger);
 
                 for (TriggerReactionEntry entry : keyPressedEntries) {
-                    if (NativeKeyEvent.getKeyText(event.getKeyCode()).equals(entry.getTrigger().getValue())) {
-                        entry.triggerReaction(this);
+                    KeyTrigger trigger = entry.getTrigger();
+                    if (trigger.compare(event).isValid()) {
+                        entry.triggerReaction(this, null);
                     }
                 }
             }
         }
     }
 
-    public void clearAll(ActionEvent event) {
+    public void clearAll(ActionEvent ignoredEvent) {
         synchronized (GTrigger.entryLock) {
             entryOverview.getItems().clear();
         }
@@ -192,7 +193,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     private void evaluateReaction(Observable e) {
         if(reactionValueBox.getText().trim().isEmpty()) {
             reactionValueBox.setStyle("");
-        } else if(reactionTypeBox.getValue().testValue(reactionValueBox.getText())) {
+        } else if(reactionTypeBox.getValue().testValue(reactionValueBox.getText(), VariableUtil.findVariables(triggerValueBox.getText()))) {
             reactionValueBox.setStyle("-fx-effect: dropshadow(three-pass-box, lime, 5, 0, 0, 0);");
         } else {
             reactionValueBox.setStyle("-fx-effect: dropshadow(three-pass-box, red, 5, 0, 0, 0);");
@@ -202,7 +203,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     }
 
     private void evaluateButton() {
-        addButton.setDisable(reactionValueBox.getText().trim().isEmpty() || !reactionTypeBox.getValue().testValue(reactionValueBox.getText()) ||
+        addButton.setDisable(reactionValueBox.getText().trim().isEmpty() || !reactionTypeBox.getValue().testValue(reactionValueBox.getText(), VariableUtil.findVariables(triggerValueBox.getText())) ||
                              triggerValueBox.getText().trim().isEmpty() || !triggerTypeBox.getValue().testValue(triggerValueBox.getText()));
     }
 
@@ -221,8 +222,8 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         });
     }
 
-    public void editOrAddEntry(ActionEvent event) {
-        Trigger trigger = triggerTypeBox.getValue().construct(triggerValueBox.getText());
+    public void editOrAddEntry(ActionEvent ignoredEvent) {
+        Trigger<?> trigger = triggerTypeBox.getValue().construct(triggerValueBox.getText());
         Reaction reaction = reactionTypeBox.getValue().construct(reactionValueBox.getText());
         TriggerReactionEntry newEntry = new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue());
         switch(editingMode) {
@@ -275,17 +276,21 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     }
 
     private void setupColumns() {
-        TableColumn<TriggerReactionEntry, AtomicBoolean> activeColumn = createColumn("Active", "active", 48);
+        TableColumn<TriggerReactionEntry, AtomicBoolean> activeColumn = createColumn("Active", "active", 58);
         activeColumn.setCellFactory(tc -> new AtomicCheckBoxTableCell());
         entryOverview.getColumns().add(activeColumn);
 
-        entryOverview.getColumns().add(createColumn("Trigger", "triggerDescription", 200));
+        TableColumn<TriggerReactionEntry, AtomicBoolean> consumedColumn = createColumn("Consume", "consumed", 60);
+        consumedColumn.setCellFactory(tc -> new ConsumedCheckBoxTableCell());
+        entryOverview.getColumns().add(consumedColumn);
 
-        entryOverview.getColumns().add(createColumn("Reaction", "reactionDescription", 200));
+        entryOverview.getColumns().add(createColumn("Trigger", "triggerDescription", 180));
 
-        entryOverview.getColumns().add(createColumn("Description", "description", 200));
+        entryOverview.getColumns().add(createColumn("Reaction", "reactionDescription", 180));
 
-        TableColumn<TriggerReactionEntry, Integer> delayColumn = createColumn("Delay", "delay", 50);
+        entryOverview.getColumns().add(createColumn("Description", "description", 180));
+
+        TableColumn<TriggerReactionEntry, Integer> delayColumn = createColumn("Delay", "delay", 40);
         delayColumn.setStyle( "-fx-alignment: CENTER;");
         entryOverview.getColumns().add(delayColumn);
 

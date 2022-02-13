@@ -10,6 +10,7 @@ public class AtomicCheckBoxTableCell extends CheckBoxTableCell<TriggerReactionEn
     @Override
     public void updateItem(AtomicBoolean item, boolean empty) {
         super.updateItem(item, empty);
+
         if (empty || item == null)
             setGraphic(null);
         else {

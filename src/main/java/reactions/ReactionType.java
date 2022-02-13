@@ -1,13 +1,13 @@
 package reactions;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 public enum ReactionType {
     PACKETTOSERVER("Packet to server", PacketToServerReaction.class),
     PACKETTOCLIENT("Packet to client", PacketToClientReaction.class);
 
     public final String desc;
-    private final Class reactionClass;
+    private final Class<? extends Reaction> reactionClass;
 
     <T extends Reaction> ReactionType(String desc, Class<T> reactionClass) {
         this.desc = desc;
@@ -17,22 +17,19 @@ public enum ReactionType {
     public<T extends Reaction> T construct(String value) {
         try {
             return (T) reactionClass.getConstructor(String.class).newInstance(value);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            throw new Error("Couldn't find constructor for ReactionType." + this);
         }
-
-        throw new Error("Couldn't find constructor for TriggerType." + this);
     }
 
-    public boolean testValue(String value) {
-        switch (this) {
-            case PACKETTOSERVER:
-                return PacketToServerReaction.testValue(value);
-            case PACKETTOCLIENT:
-                return PacketToClientReaction.testValue(value);
+    public boolean testValue(String value, List<String> variables) {
+        try {
+            return (boolean) reactionClass
+                    .getMethod("testValue", String.class, List.class)
+                    .invoke(null, value, variables);
+        } catch (Exception e) {
+            throw new Error("Couldn't find testValue method for ReactionType." + this);
         }
-
-        return false;
     }
 
     @Override
