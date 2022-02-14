@@ -134,14 +134,12 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                 triggerValueBox.setText(NativeKeyEvent.getKeyText(event.getKeyCode()));
             }
         } else {
-            if (WindowWatcher.getFrontMostWindowName().toLowerCase().contains("habbo")) {
-                synchronized (GTrigger.entryLock) {
-                    entryOverview.getItems()
-                            .filtered(entry -> entry.isActive().get())
-                            .filtered(entry -> entry.getTrigger() instanceof KeyTrigger)
-                            .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
-                            .forEach(entry -> entry.triggerReaction(this, new HashMap<>()));
-                }
+            synchronized (GTrigger.entryLock) {
+                entryOverview.getItems()
+                        .filtered(entry -> entry.isActive().get())
+                        .filtered(entry -> entry.getTrigger() instanceof KeyTrigger)
+                        .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
+                        .forEach(entry -> entry.triggerReaction(this, new HashMap<>()));
             }
         }
     }
