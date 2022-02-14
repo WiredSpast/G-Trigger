@@ -30,12 +30,13 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @ExtensionInfo(
         Title = "G-Trigger",
         Description = "Send packets on trigger events",
-        Version = "0.1",
+        Version = "0.2",
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
@@ -44,9 +45,10 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     public TableView<TriggerReactionEntry> entryOverview;
     public ComboBox<TriggerType> triggerTypeBox;
     public ComboBox<ReactionType> reactionTypeBox;
-    public Spinner<Integer> delaySpinner;
-    public TextField descriptionBox, triggerValueBox, reactionValueBox;
+    public TextField delayBox, descriptionBox, triggerValueBox, reactionValueBox;
     public Button addButton, saveButton, loadButton;
+
+    public CheckMenuItem chkAlwaysOnTop;
 
     public EditingMode editingMode = EditingMode.Add;
     public final static Object entryLock = new Object();
@@ -144,17 +146,23 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         }
     }
 
-    public void clearAll(ActionEvent ignoredEvent) {
-        synchronized (GTrigger.entryLock) {
-            entryOverview.getItems().clear();
-        }
-    }
-
     private void setupGUI() {
         entryOverview.setSelectionModel(null);
 
-        delaySpinner.getEditor().setOnKeyTyped(e -> {
+        delayBox.setOnKeyTyped(e -> {
             if(!"0123456789".contains(e.getCharacter())) e.consume();
+        });
+
+        delayBox.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue.isEmpty()) {
+                delayBox.setText("0");
+                return;
+            }
+
+            int numericValue = Integer.parseInt(newValue);
+            if (numericValue > 9999) {
+                delayBox.setText("9999");
+            }
         });
 
         triggerTypeBox.getItems().addAll(TriggerType.values());
@@ -226,7 +234,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         Reaction reaction = reactionTypeBox.getValue().construct(reactionValueBox.getText());
         switch(editingMode) {
             case Add:
-                addEntry(new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue()));
+                addEntry(new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), Integer.parseInt(delayBox.getText())));
                 break;
             case Edit:
                 entryOverview.getItems().stream().filter(entry -> entry.getId() == EditingMode.editingId).forEach(entry -> {
@@ -234,7 +242,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                     entry.deselect();
                     entryOverview.getItems().set(
                                     entryOverview.getItems().indexOf(entry),
-                                    new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), delaySpinner.getValue(), entry.isActive().get(), entry.isConsumed().get())
+                                    new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), Integer.parseInt(delayBox.getText()), entry.isActive().get(), entry.isConsumed().get())
                     );
                 });
                 break;
@@ -262,7 +270,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
             reactionTypeBox.setValue(entry.getReaction().getType());
             reactionValueBox.setText(entry.getReaction().getValue());
             descriptionBox.setText(entry.getDescription());
-            delaySpinner.getValueFactory().setValue(entry.getDelay());
+            delayBox.setText("" + entry.getDelay());
         }
     }
 
@@ -337,20 +345,6 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         }
     }
 
-    public void disableAllEntries() {
-        entryOverview.getItems().forEach(entry -> {
-            entry.setActive(false);
-            entry.reload(entryOverview);
-        });
-    }
-
-    public void enableAllEntries() {
-        entryOverview.getItems().forEach(entry -> {
-            entry.setActive(true);
-            entry.reload(entryOverview);
-        });
-    }
-
     public void onFileOver(DragEvent dragEvent) {
         if (dragEvent.getDragboard().hasFiles()) {
             if (dragEvent.getDragboard().getFiles().stream().allMatch(f -> f.getName().endsWith(".gTrig"))) {
@@ -374,5 +368,122 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         }
 
         dragEvent.setDropCompleted(success);
+    }
+
+    public void toggleAlwaysOnTop(ActionEvent ignoredEvent) {
+        GTrigger.primaryStage.setAlwaysOnTop(chkAlwaysOnTop.isSelected());
+    }
+
+    public void manipulateEntries(Class<? extends Trigger> triggerClass, Consumer<TriggerReactionEntry> manipulation) {
+        synchronized (GTrigger.entryLock) {
+            entryOverview.getItems()
+                    .filtered(entry -> triggerClass.isInstance(entry.getTrigger()))
+                    .forEach(manipulation);
+
+            entryOverview.refresh();
+        }
+    }
+
+    public void removeEntries(Class<? extends Trigger> triggerClass) {
+        synchronized (GTrigger.entryLock) {
+            entryOverview.getItems()
+                    .removeIf(entry -> triggerClass.isInstance(entry.getTrigger()));
+        }
+    }
+
+    public void disableAllEntries(ActionEvent ignoredEvent) {
+        manipulateEntries(Trigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllEntries(ActionEvent ignoredEvent) {
+        manipulateEntries(Trigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllEntries(ActionEvent ignoredEvent) {
+        removeEntries(Trigger.class);
+    }
+
+    public void disableAllKeyTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(KeyTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllKeyTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(KeyTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllKeyTriggers(ActionEvent ignoredEvent) {
+        removeEntries(KeyTrigger.class);
+    }
+
+    public void disableAllPacketTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllPacketTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllPacketTriggers(ActionEvent ignoredEvent) {
+        removeEntries(PacketTrigger.class);
+    }
+
+    public void disableAllPacketToServerTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketToServerTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllPacketToServerTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketToServerTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllPacketToServerTriggers(ActionEvent ignoredEvent) {
+        removeEntries(PacketToServerTrigger.class);
+    }
+
+    public void disableAllPacketToClientTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketToClientTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllPacketToClientTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(PacketToClientTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllPacketToClientTriggers(ActionEvent ignoredEvent) {
+        removeEntries(PacketToClientTrigger.class);
+    }
+
+    public void disableAllCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(CommandSaidTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(CommandSaidTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllCommandTriggers(ActionEvent ignoredEvent) {
+        removeEntries(CommandSaidTrigger.class);
+    }
+
+    public void disableAllYouSayCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(YouSayCommandTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllYouSayCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(YouSayCommandTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllYouSayCommandTriggers(ActionEvent ignoredEvent) {
+        removeEntries(YouSayCommandTrigger.class);
+    }
+
+    public void disableAllAnyoneSaysCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(AnyoneSaysCommandTrigger.class, entry -> entry.setActive(false));
+    }
+
+    public void enableAllAnyoneSaysCommandTriggers(ActionEvent ignoredEvent) {
+        manipulateEntries(AnyoneSaysCommandTrigger.class, entry -> entry.setActive(true));
+    }
+
+    public void removeAllAnyoneSaysCommandTriggers(ActionEvent ignoredEvent) {
+        removeEntries(AnyoneSaysCommandTrigger.class);
     }
 }

@@ -24,8 +24,6 @@ public class EditEntryTableCell extends TableCell<TriggerReactionEntry, Long> {
             return;
         }
 
-        getTableView().getItems().get(getIndex()).setRow(getTableRow());
-
         edit.setOnMouseClicked(event -> System.out.println("edit" + id));
         edit.setOnMouseEntered(event -> edit.setImage(new Image(Objects.requireNonNull(ExtensionFormLauncher.class.getResourceAsStream("/gearth/ui/files/ButtonEditHover.png")))));
         edit.setOnMouseExited(event -> edit.setImage(new Image(Objects.requireNonNull(ExtensionFormLauncher.class.getResourceAsStream("/gearth/ui/files/ButtonEdit.png")))));

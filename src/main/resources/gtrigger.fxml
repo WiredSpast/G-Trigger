@@ -1,29 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="350.0" prefWidth="780.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="extension.GTrigger">
-  <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragOver="#onFileOver" onDragDropped="#onFileDrop" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
-    <columns>
-    </columns>
-  </TableView>
-  <ComboBox fx:id="triggerTypeBox" layoutX="81.0" layoutY="275.0" prefHeight="25.0" prefWidth="140.0" />
-  <TextField fx:id="descriptionBox" layoutX="81.0" layoutY="239.0" prefHeight="25.0" prefWidth="550.0" />
-  <TextField fx:id="triggerValueBox" layoutX="226.0" layoutY="275.0" prefHeight="25.0" prefWidth="405.0" />
-  <Label layoutX="14.0" layoutY="243.0" text="Description:" />
-  <Label layoutX="14.0" layoutY="279.0" text="Trigger:" />
-  <ComboBox fx:id="reactionTypeBox" layoutX="81.0" layoutY="311.0" prefHeight="25.0" prefWidth="140.0" />
-  <TextField fx:id="reactionValueBox" layoutX="226.0" layoutY="311.0" prefHeight="25.0" prefWidth="405.0" />
-  <Label layoutX="14.0" layoutY="315.0" text="Reaction:" />
-  <Label layoutX="640.0" layoutY="243.0" text="Delay:" />
-  <Spinner fx:id="delaySpinner" editable="true" layoutX="687.0" layoutY="239.0" prefHeight="25.0" prefWidth="83.0">
-    <valueFactory>
-      <SpinnerValueFactory.IntegerSpinnerValueFactory amountToStepBy="1" initialValue="0" max="9999" min="0" />
-    </valueFactory>
-  </Spinner>
-  <Button layoutX="675.0" layoutY="311.0" mnemonicParsing="false" onAction="#clearAll" prefHeight="25.0" prefWidth="95.0" text="Clear all" />
-  <Button fx:id="addButton" disable="true" layoutX="675.0" layoutY="275.0" mnemonicParsing="false" onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add" />
-  <Button fx:id="saveButton" disable="true" layoutX="640.0" layoutY="275.0" mnemonicParsing="false" onAction="#saveEntries" prefWidth="25.0" text="S" />
-  <Button fx:id="loadButton" layoutX="640.0" layoutY="311.0" mnemonicParsing="false" onAction="#loadEntriesFromFiles" prefWidth="25.0" text="L" />
-</AnchorPane>
+<VBox xmlns="http://javafx.com/javafx/8.0.301" xmlns:fx="http://javafx.com/fxml/1" fx:controller="extension.GTrigger">
+  <MenuBar>
+    <Menu mnemonicParsing="false" text="Window">
+      <CheckMenuItem fx:id="chkAlwaysOnTop" mnemonicParsing="false" onAction="#toggleAlwaysOnTop" text="Always on top" />
+    </Menu>
+    <Menu mnemonicParsing="false" text="Control">
+      <Menu mnemonicParsing="false" text="All">
+        <MenuItem mnemonicParsing="false" onAction="#enableAllEntries" text="Enable all triggers">
+          <accelerator>
+            <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#disableAllEntries" text="Disable all 'triggers">
+          <accelerator>
+            <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#removeAllEntries" text="Remove all triggers">
+          <accelerator>
+            <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+      </Menu>
+      <SeparatorMenuItem />
+      <Menu mnemonicParsing="false" text="Key pressed">
+        <MenuItem mnemonicParsing="false" onAction="#enableAllKeyTriggers" text="Enable all 'Key pressed' triggers">
+          <accelerator>
+            <KeyCodeCombination alt="UP" code="K" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#disableAllKeyTriggers" text="Disable all 'Key pressed' triggers">
+          <accelerator>
+            <KeyCodeCombination alt="UP" code="K" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+        <MenuItem mnemonicParsing="false" onAction="#removeAllKeyTriggers" text="Remove all 'Key pressed' triggers">
+          <accelerator>
+            <KeyCodeCombination alt="DOWN" code="K" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+          </accelerator>
+        </MenuItem>
+      </Menu>
+      <Menu mnemonicParsing="false" text="Packet triggers">
+        <Menu mnemonicParsing="false" text="All">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllPacketTriggers" text="Enable all 'Packet' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllPacketTriggers" text="Disable all 'Packet' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="P" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllPacketTriggers" text="Remove all 'Packet' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="P" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+        <SeparatorMenuItem />
+        <Menu mnemonicParsing="false" text="Packet to server">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllPacketToServerTriggers" text="Enable all 'Packet to server' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllPacketToServerTriggers" text="Disable all 'Packet to server' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllPacketToServerTriggers" text="Remove all 'Packet to server' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Packet to client">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllPacketToClientTriggers" text="Enable all 'Packet to client' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllPacketToClientTriggers" text="Disable all 'Packet to client' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllPacketToClientTriggers" text="Remove all 'Packet to client' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+      </Menu>
+      <Menu mnemonicParsing="false" text="Command said triggers">
+        <Menu mnemonicParsing="false" text="All">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllCommandTriggers" text="Enable all 'Command said' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="M" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllCommandTriggers" text="Disable all 'Command said' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="M" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllCommandTriggers" text="Remove all 'Command said' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="M" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+        <SeparatorMenuItem />
+        <Menu mnemonicParsing="false" text="You say command">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllYouSayCommandTriggers" text="Enable all 'You say command' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="Y" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllYouSayCommandTriggers" text="Disable all 'You say command' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="Y" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllYouSayCommandTriggers" text="Remove all 'You say command' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="Y" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Anyone says cmd">
+          <MenuItem mnemonicParsing="false" onAction="#enableAllAnyoneSaysCommandTriggers" text="Enable all 'Anyone says cmd' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#disableAllAnyoneSaysCommandTriggers" text="Disable all 'Anyone says cmd' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="UP" code="A" control="DOWN" meta="UP" shift="DOWN" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#removeAllAnyoneSaysCommandTriggers" text="Remove all 'Anyone says cmd' triggers">
+            <accelerator>
+              <KeyCodeCombination alt="DOWN" code="A" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+            </accelerator>
+          </MenuItem>
+        </Menu>
+      </Menu>
+    </Menu>
+  </MenuBar>
+  <AnchorPane prefHeight="350.0" prefWidth="780.0">
+    <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragDropped="#onFileDrop" onDragOver="#onFileOver" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
+      <columns>
+      </columns>
+    </TableView>
+    <ComboBox fx:id="triggerTypeBox" layoutX="81.0" layoutY="275.0" prefHeight="25.0" prefWidth="140.0" />
+    <TextField fx:id="descriptionBox" layoutX="81.0" layoutY="239.0" prefHeight="25.0" prefWidth="550.0" />
+    <TextField fx:id="triggerValueBox" layoutX="226.0" layoutY="275.0" prefHeight="25.0" prefWidth="405.0" />
+    <Label layoutX="14.0" layoutY="243.0" text="Description:" />
+    <Label layoutX="14.0" layoutY="279.0" text="Trigger:" />
+    <ComboBox fx:id="reactionTypeBox" layoutX="81.0" layoutY="311.0" prefHeight="25.0" prefWidth="140.0" />
+    <TextField fx:id="reactionValueBox" layoutX="226.0" layoutY="311.0" prefHeight="25.0" prefWidth="405.0" />
+    <Label layoutX="14.0" layoutY="315.0" text="Reaction:" />
+    <Label layoutX="640.0" layoutY="243.0" text="Delay:" />
+    <TextField fx:id="delayBox" layoutX="687.0" layoutY="239.0" prefHeight="25.0" prefWidth="83.0" text="0" />
+    <Button layoutX="675.0" layoutY="311.0" mnemonicParsing="false" onAction="#removeAllEntries" prefHeight="25.0" prefWidth="95.0" text="Clear all" />
+    <Button fx:id="addButton" disable="true" layoutX="675.0" layoutY="275.0" mnemonicParsing="false" onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add" />
+    <Button fx:id="saveButton" disable="true" layoutX="640.0" layoutY="275.0" mnemonicParsing="false" onAction="#saveEntries" prefWidth="25.0" text="S" />
+    <Button fx:id="loadButton" layoutX="640.0" layoutY="311.0" mnemonicParsing="false" onAction="#loadEntriesFromFiles" prefWidth="25.0" text="L" />
+  </AnchorPane>
+</VBox>

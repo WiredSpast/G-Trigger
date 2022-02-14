@@ -126,13 +126,6 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
         return this.consumed.get();
     }
 
-    public void reload(TableView<TriggerReactionEntry> entryOverview) {
-        int index = entryOverview.getItems().indexOf(this);
-        if(index != -1) {
-            entryOverview.getItems().set(index, this);
-        }
-    }
-
     @Override
     public int compareTo(TriggerReactionEntry entry) {
         return this.trigger.equals(entry.trigger)

@@ -19,9 +19,7 @@ public class AtomicCheckBoxTableCell extends CheckBoxTableCell<TriggerReactionEn
             cb.setSelected(item.get());
             cb.selectedProperty().addListener((observable, oldValue, newValue) -> {
                 item.set(newValue);
-                synchronized (GTrigger.entryLock) {
-                    getTableView().getItems().set(getIndex(), getTableView().getItems().get(getIndex()));
-                }
+                getTableView().refresh();
             });
         }
     }
