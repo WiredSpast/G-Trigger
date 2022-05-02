@@ -6,7 +6,7 @@
 
   <groupId>GEarth.Extensions</groupId>
   <artifactId>G-Trigger</artifactId>
-  <version>0.2</version>
+  <version>0.2.1</version>
   <packaging>jar</packaging>
 
   <build>
@@ -16,6 +16,7 @@
         <directory>src/main/resources</directory>
         <includes>
           <include>**/*.fxml</include>
+          <include>**/*.css</include>
         </includes>
       </resource>
     </resources>
@@ -86,8 +87,8 @@
   <dependencies>
     <dependency>
       <groupId>G-Earth</groupId>
-      <artifactId>G-Earth-Native-Extension</artifactId>
-      <version>1.5.0</version>
+      <artifactId>G-Earth</artifactId>
+      <version>1.5.2</version>
     </dependency>
     <dependency>
       <groupId>com.github.kwhat</groupId>

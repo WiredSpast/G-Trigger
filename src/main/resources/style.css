@@ -1,0 +1,24 @@
+.g-dark .table-view {
+    -fx-background-color: rgba(20, 20, 20, 0.4);
+}
+
+.g-dark .table-view .table-cell{
+    -fx-text-fill: #f0f0f0;
+}
+
+.g-dark .table-row-cell {
+    -fx-background-color: #313131;
+}
+
+.g-dark .table-view .column-header {
+    -fx-background-color: #212121;
+}
+
+.g-dark .table-view .table-cell{
+    -fx-border-color: #262626;
+    -fx-border-width: 0.5;
+}
+
+.g-dark .combo-box .list-cell {
+    -fx-background-color: transparent;
+}

@@ -1,34 +1,26 @@
 package extension;
 
-import gearth.extensions.ExtensionForm;
-import gearth.extensions.ExtensionFormCreator;
-import gearth.extensions.ExtensionFormLauncher;
-import gearth.extensions.ExtensionInfo;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
+import gearth.extensions.*;
 import javafx.stage.Stage;
 
+import java.net.URL;
 import java.util.Objects;
 
-public class GTriggerLauncher extends ExtensionFormCreator {
+public class GTriggerLauncher extends ThemedExtensionFormCreator {
     @Override
-    protected ExtensionForm createForm(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gtrigger.fxml"));
-        Parent root = loader.load();
-        GTrigger controller = loader.getController();
+    protected String getTitle() {
+        return "G-Trigger " + GTrigger.class.getAnnotation(ExtensionInfo.class).Version();
+    }
 
-        stage.setTitle("G-Trigger " + controller.getClass().getAnnotation(ExtensionInfo.class).Version());
-        stage.setScene(new Scene(root));
-        stage.getScene().getStylesheets().add(Objects.requireNonNull(ExtensionFormCreator.class.getResource("/gearth/ui/bootstrap3.css")).toExternalForm());
-        stage.getIcons().add(new Image(Objects.requireNonNull(ExtensionFormLauncher.class.getResourceAsStream("/gearth/G-EarthLogoSmaller.png"))));
-        stage.setResizable(false);
-        stage.sizeToScene();
+    @Override
+    protected URL getFormResource() {
+        return getClass().getResource("/gtrigger.fxml");
+    }
 
-        GTrigger.primaryStage = stage;
-
-        return controller;
+    @Override
+    protected void initialize(Stage primaryStage) {
+        GTrigger.primaryStage = primaryStage;
+        primaryStage.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("/style.css")).toExternalForm());
     }
 
     public static void main(String[] args) {

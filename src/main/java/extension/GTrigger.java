@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @ExtensionInfo(
         Title = "G-Trigger",
         Description = "Send packets on trigger events",
-        Version = "0.2",
+        Version = "0.2.1",
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
