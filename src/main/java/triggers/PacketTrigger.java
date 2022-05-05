@@ -22,9 +22,9 @@ public abstract class PacketTrigger extends Trigger<HPacket> {
         if(!packet.isPacketComplete()) {
             if(packet.canComplete(packetInfoManager)) {
                 packet.completePacket(packetInfoManager);
+            } else {
+                return new HPacket(0);
             }
-        } else {
-            return new HPacket(new byte[0]);
         }
 
         return packet;
