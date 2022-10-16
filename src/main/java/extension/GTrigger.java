@@ -16,19 +16,12 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.stage.Stage;
-import overview.ConsumedCheckBoxTableCell;
-import reactions.Reaction;
-import reactions.ReactionType;
+import reactions.*;
 import triggers.*;
-import overview.AtomicCheckBoxTableCell;
-import overview.EditEntryTableCell;
-import overview.TriggerReactionEntry;
+import overview.*;
 import util.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -36,7 +29,7 @@ import java.util.stream.Collectors;
 @ExtensionInfo(
         Title = "G-Trigger",
         Description = "Send packets on trigger events",
-        Version = "0.2.2",
+        Version = "0.2.3",
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
@@ -362,7 +355,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                     .addAll(db.getFiles()
                             .stream()
                             .flatMap(file -> FileManager.getEntriesFromFile(file).stream())
-                            .collect(Collectors.toCollection(TreeSet::new))
+                            .collect(Collectors.toCollection(HashSet::new))
                     );
             success = true;
         }

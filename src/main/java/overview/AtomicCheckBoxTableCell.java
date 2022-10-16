@@ -1,6 +1,5 @@
 package overview;
 
-import extension.GTrigger;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.cell.CheckBoxTableCell;
 

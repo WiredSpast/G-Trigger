@@ -62,7 +62,7 @@ public class FileManager {
         return selectedFiles
                 .stream()
                 .flatMap(file -> getEntriesFromFile(file).stream())
-                .collect(Collectors.toCollection(TreeSet::new));
+                .collect(Collectors.toCollection(HashSet::new));
     }
 
     public static List<TriggerReactionEntry> getEntriesFromFile(File file) {

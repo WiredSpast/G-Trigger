@@ -16,7 +16,7 @@
             <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
           </accelerator>
         </MenuItem>
-        <MenuItem mnemonicParsing="false" onAction="#disableAllEntries" text="Disable all 'triggers">
+        <MenuItem mnemonicParsing="false" onAction="#disableAllEntries" text="Disable all triggers">
           <accelerator>
             <KeyCodeCombination alt="UP" code="D" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
           </accelerator>
@@ -154,6 +154,14 @@
         </Menu>
       </Menu>
     </Menu>
+      <Menu mnemonicParsing="false" text=" Save / Load">
+        <items>
+          <MenuItem mnemonicParsing="false" onAction="#saveEntries" text="Save" disable="true" >
+          </MenuItem>
+          <MenuItem mnemonicParsing="false" onAction="#loadEntriesFromFiles" text="Load">
+          </MenuItem>
+        </items>
+      </Menu>
   </MenuBar>
   <AnchorPane prefHeight="350.0" prefWidth="780.0">
     <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragDropped="#onFileDrop" onDragOver="#onFileOver" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
