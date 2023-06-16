@@ -6,7 +6,7 @@
 
   <groupId>GEarth.Extensions</groupId>
   <artifactId>G-Trigger</artifactId>
-  <version>0.2.3</version>
+  <version>0.2.4</version>
   <packaging>jar</packaging>
 
   <build>
@@ -88,12 +88,17 @@
     <dependency>
       <groupId>G-Earth</groupId>
       <artifactId>G-Earth</artifactId>
-      <version>1.5.2</version>
+      <version>1.5.3</version>
     </dependency>
     <dependency>
       <groupId>com.github.kwhat</groupId>
       <artifactId>jnativehook</artifactId>
       <version>2.2.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20230227</version>
     </dependency>
   </dependencies>
 </project>

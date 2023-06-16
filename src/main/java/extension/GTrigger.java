@@ -21,6 +21,7 @@ import triggers.*;
 import overview.*;
 import util.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 @ExtensionInfo(
         Title = "G-Trigger",
         Description = "Send packets on trigger events",
-        Version = "0.2.3",
+        Version = "0.2.4",
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
@@ -61,12 +62,12 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
     }
 
     private void onChatOut(HMessage hMessage) {
-        onChat(hMessage, hMessage.getPacket().readString(), YouSayCommandTrigger.class);
+        onChat(hMessage, hMessage.getPacket().readString(StandardCharsets.UTF_8), YouSayCommandTrigger.class);
     }
 
     private void onChatIn(HMessage hMessage) {
         hMessage.getPacket().readInteger();
-        onChat(hMessage, hMessage.getPacket().readString(), AnyoneSaysCommandTrigger.class);
+        onChat(hMessage, hMessage.getPacket().readString(StandardCharsets.UTF_8), AnyoneSaysCommandTrigger.class);
     }
 
     private<T extends CommandSaidTrigger> void onChat(HMessage hMessage, String chatMsg, Class<T> triggerClass) {

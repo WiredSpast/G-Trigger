@@ -5,6 +5,7 @@ import gearth.services.packet_info.PacketInfoManager;
 import util.ComparisonResult;
 import util.VariableUtil;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +59,7 @@ public abstract class PacketTrigger extends Trigger<HPacket> {
                 List<String> comparisonStrings = new ArrayList<>();
                 if (packetPart.startsWith("\\{s:\"")) {
                     System.out.println("String");
-                    comparisonStrings.add(String.format("{s:\"%s\"}", packet.readString()));
+                    comparisonStrings.add(String.format("{s:\"%s\"}", packet.readString(StandardCharsets.UTF_8)));
                 } else if (packetPart.equals("\\{b:false\\}") || packetPart.equals("\\{b:true\\}")) {
                     System.out.println("Boolean");
                     comparisonStrings.add(String.format("{b:%b}", packet.readBoolean()));
