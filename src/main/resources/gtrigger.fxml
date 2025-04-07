@@ -163,24 +163,24 @@
         </items>
       </Menu>
   </MenuBar>
-  <AnchorPane prefHeight="350.0" prefWidth="780.0">
-    <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragDropped="#onFileDrop" onDragOver="#onFileOver" pickOnBounds="false" prefHeight="220.0" prefWidth="760.0">
+  <AnchorPane prefHeight="350.0" prefWidth="840.0">
+    <TableView fx:id="entryOverview" layoutX="10.0" layoutY="10.0" onDragDropped="#onFileDrop" onDragOver="#onFileOver" pickOnBounds="false" prefHeight="220.0" prefWidth="820.0">
       <columns>
       </columns>
     </TableView>
-    <ComboBox fx:id="triggerTypeBox" layoutX="81.0" layoutY="275.0" prefHeight="25.0" prefWidth="140.0" />
-    <TextField fx:id="descriptionBox" layoutX="81.0" layoutY="239.0" prefHeight="25.0" prefWidth="550.0" />
-    <TextField fx:id="triggerValueBox" layoutX="226.0" layoutY="275.0" prefHeight="25.0" prefWidth="405.0" />
+    <ComboBox fx:id="triggerTypeBox" layoutX="101.0" layoutY="275.0" prefHeight="25.0" prefWidth="160.0" />
+    <TextField fx:id="descriptionBox" layoutX="101.0" layoutY="239.0" prefHeight="25.0" prefWidth="590.0" />
+    <TextField fx:id="triggerValueBox" layoutX="266.0" layoutY="275.0" prefHeight="25.0" prefWidth="425.0" />
     <Label layoutX="14.0" layoutY="243.0" text="Description:" />
     <Label layoutX="14.0" layoutY="279.0" text="Trigger:" />
-    <ComboBox fx:id="reactionTypeBox" layoutX="81.0" layoutY="311.0" prefHeight="25.0" prefWidth="140.0" />
-    <TextField fx:id="reactionValueBox" layoutX="226.0" layoutY="311.0" prefHeight="25.0" prefWidth="405.0" />
+    <ComboBox fx:id="reactionTypeBox" layoutX="101.0" layoutY="311.0" prefHeight="25.0" prefWidth="160.0" />
+    <TextField fx:id="reactionValueBox" layoutX="266.0" layoutY="311.0" prefHeight="25.0" prefWidth="425.0" />
     <Label layoutX="14.0" layoutY="315.0" text="Reaction:" />
-    <Label layoutX="640.0" layoutY="243.0" text="Delay:" />
-    <TextField fx:id="delayBox" layoutX="687.0" layoutY="239.0" prefHeight="25.0" prefWidth="83.0" text="0" />
-    <Button layoutX="675.0" layoutY="311.0" mnemonicParsing="false" onAction="#removeAllEntries" prefHeight="25.0" prefWidth="95.0" text="Clear all" />
-    <Button fx:id="addButton" disable="true" layoutX="675.0" layoutY="275.0" mnemonicParsing="false" onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add" />
-    <Button fx:id="saveButton" disable="true" layoutX="640.0" layoutY="275.0" mnemonicParsing="false" onAction="#saveEntries" prefWidth="25.0" text="S" />
-    <Button fx:id="loadButton" layoutX="640.0" layoutY="311.0" mnemonicParsing="false" onAction="#loadEntriesFromFiles" prefWidth="25.0" text="L" />
+    <Label layoutX="700.0" layoutY="243.0" text="Delay:" />
+    <TextField fx:id="delayBox" layoutX="746.0" layoutY="239.0" prefHeight="25.0" prefWidth="83.0" text="0" />
+    <Button layoutX="735.0" layoutY="311.0" mnemonicParsing="false" onAction="#removeAllEntries" prefHeight="25.0" prefWidth="95.0" text="Clear all" />
+    <Button fx:id="addButton" disable="true" layoutX="735.0" layoutY="275.0" mnemonicParsing="false" onAction="#editOrAddEntry" prefHeight="25.0" prefWidth="95.0" text="Add" />
+    <Button fx:id="saveButton" disable="true" layoutX="700.0" layoutY="275.0" mnemonicParsing="false" onAction="#saveEntries" prefWidth="25.0" text="S" />
+    <Button fx:id="loadButton" layoutX="700.0" layoutY="311.0" mnemonicParsing="false" onAction="#loadEntriesFromFiles" prefWidth="25.0" text="L" />
   </AnchorPane>
 </VBox>

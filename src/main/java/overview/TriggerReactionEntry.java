@@ -2,7 +2,6 @@ package overview;
 
 import gearth.extensions.ExtensionBase;
 import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
 import reactions.Reaction;
 import triggers.Trigger;
 
@@ -13,12 +12,13 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TriggerReactionEntry implements Serializable, Comparable<TriggerReactionEntry> {
-    static final long serialVersionUID = 956165194645L;
+    private static final long serialVersionUID = 956165194645L;
 
     protected static Long IdCounter = 0L;
 
     private transient Long id;
     private transient AtomicBoolean active = new AtomicBoolean(false);
+    private final AtomicBoolean once;
     private final AtomicBoolean consumed;
     private final Trigger<?> trigger;
     private final Reaction reaction;
@@ -36,18 +36,16 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
         this.description = description;
         this.delay = delay;
         this.active.set(true);
+        this.once = new AtomicBoolean(false);
         this.consumed = new AtomicBoolean(false);
     }
 
-    public TriggerReactionEntry(Trigger<?> trigger, Reaction reaction, String description, int delay, boolean active, boolean consumed) {
+    public TriggerReactionEntry(Trigger<?> trigger, Reaction reaction, String description, int delay, boolean active, boolean once, boolean consumed) {
         this(trigger, reaction, description, delay);
 
         this.active.set(active);
+        this.once.set(once);
         this.consumed.set(consumed);
-    }
-
-    public void setRow(TableRow<TriggerReactionEntry> row) {
-        this.row = row;
     }
 
     public void deselect() {
@@ -96,6 +94,10 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
                 getReaction().doReaction(ext, variables);
             }
         }, this.delay);
+
+        if (this.once.get()) {
+            this.active.set(false);
+        }
     }
 
     public String getTriggerDescription() {
@@ -116,6 +118,10 @@ public class TriggerReactionEntry implements Serializable, Comparable<TriggerRea
 
     public void setActive(boolean val) {
         this.active = new AtomicBoolean(val);
+    }
+
+    public AtomicBoolean isOnce() {
+        return this.once;
     }
 
     public AtomicBoolean isConsumed() {

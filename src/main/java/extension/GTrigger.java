@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 @ExtensionInfo(
         Title = "G-Trigger",
         Description = "Send packets on trigger events",
-        Version = "0.2.4",
+        Version = "0.2.5",
         Author = "WiredSpast"
 )
 public class GTrigger extends ExtensionForm implements NativeKeyListener {
@@ -53,7 +53,11 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         intercept(HMessage.Direction.TOSERVER, this::onPacketToServer);
 
         intercept(HMessage.Direction.TOCLIENT, "Chat", this::onChatIn);
+        intercept(HMessage.Direction.TOCLIENT, "Whisper", this::onChatIn);
+        intercept(HMessage.Direction.TOCLIENT, "Shout", this::onChatIn);
         intercept(HMessage.Direction.TOSERVER, "Chat", this::onChatOut);
+        intercept(HMessage.Direction.TOSERVER, "Whisper", this::onChatOut);
+        intercept(HMessage.Direction.TOSERVER, "Shout", this::onChatOut);
 
         setupChangeListener();
         setupKeyListener();
@@ -87,6 +91,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                             }
                         }
                     });
+            entryOverview.refresh();
         }
     }
 
@@ -121,6 +126,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                         }
                     });
         }
+        entryOverview.refresh();
     }
 
     @Override
@@ -137,6 +143,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                         .filtered(entry -> ((KeyTrigger) entry.getTrigger()).compare(event).isValid())
                         .forEach(entry -> entry.triggerReaction(this, new HashMap<>()));
             }
+            entryOverview.refresh();
         }
     }
 
@@ -236,7 +243,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
                     entry.deselect();
                     entryOverview.getItems().set(
                                     entryOverview.getItems().indexOf(entry),
-                                    new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), Integer.parseInt(delayBox.getText()), entry.isActive().get(), entry.isConsumed().get())
+                                    new TriggerReactionEntry(trigger, reaction, descriptionBox.getText(), Integer.parseInt(delayBox.getText()), entry.isActive().get(), entry.isOnce().get(), entry.isConsumed().get())
                     );
                 });
                 break;
@@ -283,7 +290,11 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
         activeColumn.setCellFactory(tc -> new AtomicCheckBoxTableCell());
         entryOverview.getColumns().add(activeColumn);
 
-        TableColumn<TriggerReactionEntry, AtomicBoolean> consumedColumn = createColumn("Consume", "consumed", 60);
+        TableColumn<TriggerReactionEntry, AtomicBoolean> onceColumn = createColumn("Once", "once", 58);
+        onceColumn.setCellFactory(tc -> new AtomicCheckBoxTableCell());
+        entryOverview.getColumns().add(onceColumn);
+
+        TableColumn<TriggerReactionEntry, AtomicBoolean> consumedColumn = createColumn("Consume", "consumed", 66);
         consumedColumn.setCellFactory(tc -> new ConsumedCheckBoxTableCell());
         entryOverview.getColumns().add(consumedColumn);
 
@@ -293,7 +304,7 @@ public class GTrigger extends ExtensionForm implements NativeKeyListener {
 
         entryOverview.getColumns().add(createColumn("Description", "description", 180));
 
-        TableColumn<TriggerReactionEntry, Integer> delayColumn = createColumn("Delay", "delay", 40);
+        TableColumn<TriggerReactionEntry, Integer> delayColumn = createColumn("Delay", "delay", 46);
         delayColumn.setStyle( "-fx-alignment: CENTER;");
         entryOverview.getColumns().add(delayColumn);
 
